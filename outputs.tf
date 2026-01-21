@@ -32,6 +32,12 @@ output "private_subnet_ids" {
   value       = module.vpc.private_subnets
 }
 
+output "igw_id" {
+  description = "The ID of the Internet Gateway"
+  value       = module.vpc.igw_id
+}
+
+
 ################################################################################
 # EC2
 ################################################################################
@@ -44,6 +50,10 @@ output "instance_public_ip" {
 output "instance_public_dns" {
   description = "The public DNS name of the EC2 instance"
   value       = aws_instance.app.public_dns
+}
+
+output "hostname" {
+  value = "http://${aws_instance.app.public_ip}"
 }
 
 ################################################################################
@@ -120,17 +130,40 @@ output "route53_records" {
 
 ################################################################################
 # RDS
-###################Topics#############################################################
+################################################################################
 
-output "db_connection_string" {
-  description = "Database connection string"
-  value       = "postgresql://${var.db_username}:${var.db_password}@${module.postgres.endpoint}/${var.db_name}"
+output "rds_hostname" {
+  description = "RDS instance hostname"
+  value       = module.postgres.db_instance_address
   sensitive   = true
 }
+
+output "rds_port" {
+  description = "RDS instance port"
+  value       = module.postgres.db_instance_port
+  sensitive   = true
+}
+
+output "rds_username" {
+  description = "RDS instance root username"
+  value       = module.postgres.db_instance_username
+  sensitive   = true
+}
+
+# output "db_connection_string" {
+#   description = "Database connection string"
+#   value       = "postgresql://${var.db_username}:${var.db_password}@${module.postgres.db_instance_address}:${module.postgres.db_instance_port}/${var.db_name}"
+#   sensitive   = true
+# }
 
 ################################################################################
 # Amplify
 ################################################################################
+
+output "amplify_app_id" {
+  description = "Amplify App ID"
+  value       = aws_amplify_app.frontend.id
+}
 
 output "amplify_app_name" {
   description = "Amplify App name"
@@ -146,6 +179,3 @@ output "amplify_app_default_domain" {
   description = "Amplify App domain (non-custom)"
   value       = aws_amplify_app.frontend.default_domain
 }
-
-
-

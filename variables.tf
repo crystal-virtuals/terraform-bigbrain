@@ -5,6 +5,11 @@ variable "aws_region" {
 }
 
 # Globals
+variable "user_name" {
+  description = "The user creating this infrastructure"
+  default     = "ec2-user"
+}
+
 variable "project_name" {
   description = "Name of the project"
   type        = string
@@ -26,17 +31,6 @@ variable "resource_tags" {
   description = "Tags to set for all resources"
   type        = map(string)
   default     = {}
-}
-
-variable "app_port" {
-  description = "Port on which the app listens"
-  type        = number
-  default     = 5005
-
-  validation {
-    condition     = var.app_port > 0 && var.app_port < 65536
-    error_message = "The app server port must be a valid TCP port number between 1 and 65535."
-  }
 }
 
 ################################################################################
@@ -124,7 +118,7 @@ variable "ec2_instance_type" {
 }
 
 ################################################################################
-# ACM 
+# ACM
 ################################################################################
 variable "use_existing_route53_zone" {
   description = "Use existing (via data source) or create new zone (will fail validation, if zone is not reachable)"
@@ -143,7 +137,7 @@ variable "acm_certificate_arn" {
 }
 
 ################################################################################
-# RDS 
+# RDS
 ################################################################################
 variable "db_name" {
   description = "The DB name to create. If omitted, no database is created initially"
@@ -160,26 +154,53 @@ variable "db_name" {
 variable "db_username" {
   description = "Database administrator username"
   type        = string
-  default     = "admin"
+  default     = "db_admin"
 
   # NOTE: Do NOT use 'user' as the value for 'username' as it throws:
   # "Error creating DB Instance: InvalidParameterValue: MasterUsername
   # user cannot be used as it is a reserved word used by the engine"
   validation {
-    condition     = var.db_username != "user"
-    error_message = "The username 'user' is not allowed as it is a reserved word used by the engine."
+    condition     = var.db_username != "user" && var.db_username != "admin"
+    error_message = "The username 'user' and 'admin' is not allowed as it is a reserved word used by the engine."
   }
 }
 
+# Optionally, allow user to provide their own DB password.
+# If not provided, a random password will be generated.
 variable "db_password" {
   description = "Database administrator password"
   type        = string
+  default     = null
   sensitive   = true
-  ephemeral   = true
 }
 
 ################################################################################
-# Amplify
+# EC2 Application (Backend)
+################################################################################
+
+variable "app_port" {
+  description = "Port on which the backend listens"
+  type        = number
+  default     = 5005
+
+  validation {
+    condition     = var.app_port > 0 && var.app_port < 65536
+    error_message = "The port must be a valid TCP port number between 1 and 65535."
+  }
+}
+
+variable "app_repository" {
+  description = "The repository URL for the application on the EC2 instance"
+  type        = string
+}
+
+variable "app_root" {
+  description = "The root directory of the backend application within the repository"
+  type        = string
+}
+
+################################################################################
+# Amplify (Frontend)
 ################################################################################
 
 variable "amplify_repository" {

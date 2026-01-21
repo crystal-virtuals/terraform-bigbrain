@@ -45,3 +45,4 @@ terraform.rc
 
 # macOS system files
 .DS_Store
+.vscode
